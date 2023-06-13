@@ -14,7 +14,7 @@ namespace SRQ {
         public List<Media> Media { get; set; }
         public bool IsTextByFormula { get; set; }
         public string TextSelectFormula { get; set; }
-        public int? MaxVisits { get; set; }
+        public int MaxVisits { get; set; }
         public int LocX { get; set; }
         public int LocY { get; set; }
 

@@ -48,7 +48,7 @@ namespace SRQ {
 
                 return CurrentPlayerState;
             }
-            else if (State == GameStateType.Jump) {
+             else if (State == GameStateType.Jump) {
                 var jump = Quest.Jumps.FirstOrDefault(x => x.Id == LastJumpId);
                 if (jump == null) {
                     throw new Exception($"Internal error: no last jump id={LastJumpId}");
@@ -76,8 +76,11 @@ namespace SRQ {
                 string locationOwnText = location.Texts.ElementAtOrDefault(locTextId) ?? string.Empty;
 
                 var lastJump = Quest.Jumps.FirstOrDefault(x => x.Id == LastJumpId);
-
-                string text = location.IsEmpty && lastJump != null && lastJump.Description != null ? lastJump.Description : locationOwnText;
+                if (lastJump != null) {
+                    Shared.Log("-----------------------\n Прыжок: " + lastJump.Description);
+                    Shared.Log(string.IsNullOrEmpty(lastJump.Description));
+                }
+                string text = (location.IsEmpty && lastJump != null && !string.IsNullOrEmpty(lastJump.Description)) ? lastJump.Description : locationOwnText;
                 CurrentPlayerState.Text = Replace(text);
                 CurrentPlayerState.ParamsState = GetParamsState();
                 CurrentPlayerState.Choices = State == GameStateType.Location
@@ -362,9 +365,9 @@ namespace SRQ {
                     + Constants.CRLEND);
             }
 
-            for (int ii = 0; ii < Quest.QMParams.Count(); ii++) {
+            for (int ii = 0; ii < ParamValues.Count(); ii++) {
                 while (str.IndexOf($"[p{ii + 1}]") > -1) {
-                    str = str.Replace($"[p{ii + 1}]", $"{Constants.CRL}{Quest.QMParams[ii]}{Constants.CRLEND}");
+                    str = str.Replace($"[p{ii + 1}]", $"{Constants.CRL}{ParamValues[ii]}{Constants.CRLEND}");
                 }
             }
 

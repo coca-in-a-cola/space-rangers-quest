@@ -212,9 +212,7 @@ namespace SRQ {
                     ? jump?.ParamsChanges[(int)CritParamId]?.Sound ?? Quest.QMParams[(int)CritParamId]?.Sound ?? SoundName
                     : SoundName;
             }
-            else if (State == GameStateType.CritOnLocation)
-            {
-
+            else if (State == GameStateType.CritOnLocation) {
                 State = GameStateType.CritOnLocationLastMessage;
             }
             else {
@@ -259,26 +257,26 @@ namespace SRQ {
             var allJumpsFromThisLocation = Quest.Jumps
                 .Where(x => x.FromLocationId == LocationId)
                 .Where(jump => {
-                    // Filter out jumps to locations with exceeded limit
+                    // —разу выкинуть переходы в локации с превышенным лимитом
                     var toLocation = Quest.Locations.FirstOrDefault(x => x.Id == jump.ToLocationId);
                     if (toLocation != null) {
-                        if (toLocation.MaxVisits.HasValue &&
+                        if (toLocation.MaxVisits != 0 &&
                             LocationVisitCount.TryGetValue(jump.ToLocationId, out var count) && count + 1 >= toLocation.MaxVisits) {
                             return false;
                         }
                     }
 
                     if (oldTgeBehaviour) {
-                        // This is a TGE quirk - ignore jumps leading to a location
-                        // where there were jumps, but the passability ended.
-                        // This is strange because there might be
-                        // a critical parameter to complete the quest
+                        // Ёто кака€-то особенность TGE - не учитывать переходы, которые ведут в локацию
+                        // где были переходы, а проходимость закончилась.
+                        // Ёто вообще дикость кака€-то, потому как там вполне может быть
+                        // критичный параметр завершить квест
                         var jumpsFromDestination = Quest.Jumps.Where(x => x.FromLocationId == jump.ToLocationId).ToList();
                         if (jumpsFromDestination.Count == 0) {
-                            // But if there were no jumps at all, then it's ok
+                            // Ќо если там вообще переходов не было, то всЄ ок
                             return true;
                         }
-                        if (jumpsFromDestination.Count(x => x.JumpingCountLimit.HasValue
+                        if (jumpsFromDestination.Count(x => x.JumpingCountLimit != 0
                             && JumpedCount.TryGetValue(x.Id, out var jumpedCount)
                             && jumpedCount >= x.JumpingCountLimit) == jumpsFromDestination.Count) {
                             return false;
@@ -300,6 +298,8 @@ namespace SRQ {
 
             var possibleJumpsWithSameTextGrouped = new List<Tuple<Jump, bool>>();
             var seenTexts = new Dictionary<string, bool>();
+
+            // TODO: здесь ошибка, котора€ отфильтровывает нужные единственные прыжки из пустой локации.
             foreach (var j in allPossibleJumps) {
                 var jump = j.Item1;
                 var active = j.Item2;
@@ -344,8 +344,8 @@ namespace SRQ {
                 }
             }
 
-            var newJumpsWithoutEmpty = possibleJumpsWithSameTextGrouped.Where(x => x.Item1.Text != null);
-            var newActiveJumpsOnlyEmpty = possibleJumpsWithSameTextGrouped.Where(x => x.Item2 && x.Item1.Text == null);
+            var newJumpsWithoutEmpty = possibleJumpsWithSameTextGrouped.Where(x => !string.IsNullOrEmpty(x.Item1.Text)).ToList();
+            var newActiveJumpsOnlyEmpty = possibleJumpsWithSameTextGrouped.Where(x => x.Item2 && string.IsNullOrEmpty(x.Item1.Text)).ToList();
             var newActiveJumpsOnlyOneEmpty = newActiveJumpsOnlyEmpty.Any()
                 ? new List<Tuple<Jump, bool>> { newActiveJumpsOnlyEmpty.First() } : new List<Tuple<Jump, bool>>();
 
@@ -383,7 +383,6 @@ namespace SRQ {
             }
 
             // calculateLocation is always called when state.state === "location", but state.state can change
-
             /* ј это дикий костыль дл€ пустых локаций и переходов */
             if (State == GameStateType.Location && PossibleJumps.Count == 1) {
                 var lonenyCurrentJumpInPossible = PossibleJumps[0];
@@ -470,13 +469,13 @@ namespace SRQ {
                     return false;
                 }
             }
-
-            if (jump.JumpingCountLimit.HasValue && JumpedCount.TryGetValue(jump.Id, out var count) && count >= jump.JumpingCountLimit)
+            
+            if (jump.JumpingCountLimit != 0 && JumpedCount.TryGetValue(jump.Id, out var count) && count >= jump.JumpingCountLimit)
             {
                 return false;
             }
 
-        return true;
+            return true;
         }
 
         public string ReplaceSpecialTrackName(string trackName) {
@@ -495,7 +494,7 @@ namespace SRQ {
             if (location.IsTextByFormula) {
                 if (!string.IsNullOrEmpty(location.TextSelectFormula)) {
                     int id = Formula.Calculate(location.TextSelectFormula, ParamValues, random) - 1;
-                    if (!string.IsNullOrEmpty(location.Texts[id])) {
+                    if (id < location.Texts.Count && !string.IsNullOrEmpty(location.Texts[id])) {
                         return id;
                     }
                     else {
@@ -532,6 +531,19 @@ namespace SRQ {
             var oldValues = ParamValues.Take(Quest.ParamsCount).ToList();
             var newValues = ParamValues.Take(Quest.ParamsCount).ToList();
 
+            // DEBUG
+            var showChanges = paramsChanges.Where((pc) => pc.ShowingType != ParameterShowingType.Ќе“рогать).ToList();
+            if (showChanges.Count > 0 && showDebug) {
+                Shared.Log("REAL CHANGE DETECTED");
+                var a = 0;
+            }
+
+            var valueChanges = paramsChanges.Where((pc) => pc.IsChangeValue || pc.IsChangePercentage || pc.IsChangeFormula).ToList();
+            if (valueChanges.Count > 0 && showDebug) {
+                Shared.Log("REAL CHANGE DETECTED");
+                var a = 0;
+            }
+
             for (int i = 0; i < Quest.ParamsCount; i++) {
                 var change = paramsChanges[i];
                 if (change.ShowingType == ParameterShowingType.ѕоказать) {
@@ -556,6 +568,11 @@ namespace SRQ {
                     newValues[i] = oldValues[i] + change.Change;
                 }
 
+                if (newValues[i] != oldValues[i] && showDebug) {
+                    Shared.Log($"Param updated: {oldValues[i]} -> {newValues[i]}");
+                    var a = 0;
+                }
+
                 var param = Quest.QMParams[i];
                 if (newValues[i] > param.Max) {
                     newValues[i] = param.Max;
@@ -571,6 +588,8 @@ namespace SRQ {
                     }
                 }
             }
+
+            ParamValues = newValues;
             return critParamsTriggered;
         }
 

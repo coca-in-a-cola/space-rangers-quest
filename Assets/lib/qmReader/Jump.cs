@@ -21,7 +21,7 @@ namespace SRQ {
         public int FromLocationId { get; set; }
         public int ToLocationId { get; set; }
         public bool AlwaysShow { get; set; }
-        public int? JumpingCountLimit { get; set; }
+        public int JumpingCountLimit { get; set; }
         public int ShowingOrder { get; set; }
 
         public List<JumpParameterCondition> ParamsConditions { get; set; }

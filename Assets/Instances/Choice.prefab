@@ -87,6 +87,7 @@ GameObject:
   - component: {fileID: 2320965681667284128}
   - component: {fileID: 856789130976904306}
   - component: {fileID: 8355771393071762674}
+  - component: {fileID: 7560079196012648377}
   m_Layer: 5
   m_Name: ChoiceText
   m_TagString: Text
@@ -170,8 +171,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 12
-  m_fontSizeBase: 12
+  m_fontSize: 14
+  m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -212,6 +213,18 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7560079196012648377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7352536637134459045}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a02733c55157ca4fa0227db18807a30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8641154576225871819
 GameObject:
   m_ObjectHideFlags: 0

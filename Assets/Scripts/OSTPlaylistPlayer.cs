@@ -13,6 +13,7 @@ public class OSTPlaylistPlayer : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource>();
         audioSource.loop = false;
+        DontDestroyOnLoad(gameObject);
         StartCoroutine(VerifyPlaying());
     }
 
